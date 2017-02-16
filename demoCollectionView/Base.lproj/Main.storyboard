@@ -6,10 +6,10 @@
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
-        <!--Test Collection View Controller-->
+        <!--Collection View Controller-->
         <scene sceneID="Qob-bK-mij">
             <objects>
-                <collectionViewController id="KqJ-v5-tZT" customClass="TestCollectionViewController" customModule="demoCollectionView" customModuleProvider="target" sceneMemberID="viewController">
+                <collectionViewController id="KqJ-v5-tZT" customClass="CollectionViewController" customModule="demoCollectionView" customModuleProvider="target" sceneMemberID="viewController">
                     <collectionView key="view" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" misplaced="YES" dataMode="prototypes" id="Jbl-eW-gqo">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -21,21 +21,24 @@
                             <inset key="sectionInset" minX="0.0" minY="0.0" maxX="0.0" maxY="0.0"/>
                         </collectionViewFlowLayout>
                         <cells>
-                            <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="Cell" id="WOc-No-YnE" customClass="TestCollectionViewCell" customModule="demoCollectionView" customModuleProvider="target">
+                            <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="Cell" id="WOc-No-YnE" customClass="CollectionViewCell" customModule="demoCollectionView" customModuleProvider="target">
                                 <rect key="frame" x="0.0" y="0.0" width="90" height="111"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center">
                                     <rect key="frame" x="0.0" y="0.0" width="90" height="111"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <subviews>
-                                        <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="pirlo-wine" translatesAutoresizingMaskIntoConstraints="NO" id="TVw-EN-Nu2">
-                                            <frame key="frameInset" minY="8" width="90" height="95"/>
-                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                        </imageView>
+                                        <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="AqH-sC-xHT"/>
                                     </subviews>
                                 </view>
+                                <constraints>
+                                    <constraint firstItem="AqH-sC-xHT" firstAttribute="top" secondItem="WOc-No-YnE" secondAttribute="top" id="DOe-PO-b6G"/>
+                                    <constraint firstAttribute="bottom" secondItem="AqH-sC-xHT" secondAttribute="bottom" id="KGb-Ab-avk"/>
+                                    <constraint firstAttribute="trailing" secondItem="AqH-sC-xHT" secondAttribute="trailing" id="eRp-I2-Q7Z"/>
+                                    <constraint firstItem="AqH-sC-xHT" firstAttribute="leading" secondItem="WOc-No-YnE" secondAttribute="leading" id="qF5-Uv-UXk"/>
+                                </constraints>
                                 <connections>
-                                    <outlet property="uiImage" destination="TVw-EN-Nu2" id="mHE-kt-A2I"/>
+                                    <outlet property="imageView" destination="AqH-sC-xHT" id="e9x-oz-azy"/>
                                 </connections>
                             </collectionViewCell>
                         </cells>
@@ -50,7 +53,4 @@
             <point key="canvasLocation" x="106.40000000000001" y="142.57871064467767"/>
         </scene>
     </scenes>
-    <resources>
-        <image name="pirlo-wine" width="250" height="334"/>
-    </resources>
 </document>

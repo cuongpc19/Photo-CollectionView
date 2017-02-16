@@ -13,8 +13,13 @@ import PhotosUI
 
 private let reuseIdentifier = "Cell"
 
-class TestCollectionViewController: UICollectionViewController {
+class CollectionViewController: UICollectionViewController {
     var fetchResult: PHFetchResult<PHAsset>!
+    fileprivate let imageManager = PHCachingImageManager()
+    fileprivate var thumbnailSize: CGSize!
+    fileprivate var previousPreheatRect = CGRect.zero
+    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -24,7 +29,16 @@ class TestCollectionViewController: UICollectionViewController {
             fetchResult = PHAsset.fetchAssets(with: allPhotosOptions)
         }
     }
-
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        // Determine the size of the thumbnails to request from the PHCachingImageManager
+        let scale = UIScreen.main.scale
+        let cellSize = (collectionViewLayout as! UICollectionViewFlowLayout).itemSize
+        thumbnailSize = CGSize(width: cellSize.width * scale, height: cellSize.height * scale)
+        
+       
+    }
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
@@ -50,15 +64,24 @@ class TestCollectionViewController: UICollectionViewController {
 
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of items
-        return 2
+        return fetchResult.count
     }
 
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath) as! TestCollectionViewCell
+        let asset = fetchResult.object(at: indexPath.item)
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath) as! CollectionViewCell
     
         // Configure the cell
         
-        
+        // Request an image for the asset from the PHCachingImageManager.
+        cell.representedAssetIdentifier = asset.localIdentifier
+        imageManager.requestImage(for: asset, targetSize: thumbnailSize, contentMode: .aspectFill, options: nil, resultHandler: { image, _ in
+            // The cell may have been recycled by the time this handler gets called;
+            // set the cell's thumbnail image only if it's still showing the same asset.
+            if cell.representedAssetIdentifier == asset.localIdentifier {
+                cell.thumbnailImage = image
+            }
+        })
         return cell
     }
 
