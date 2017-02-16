@@ -41,5 +41,9 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>Displays and edits photos to demonstrate the Photos framework.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Display and edit Photos</string>
 </dict>
 </plist>
