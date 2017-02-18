@@ -10,7 +10,12 @@ import UIKit
 import Photos
 import PhotosUI
 
-
+private extension UICollectionView {
+    func indexPathsForElements(in rect: CGRect) -> [IndexPath] {
+        let allLayoutAttributes = collectionViewLayout.layoutAttributesForElements(in: rect)!
+        return allLayoutAttributes.map { $0.indexPath }
+    }
+}
 private let reuseIdentifier = "Cell"
 
 class CollectionViewController: UICollectionViewController {
@@ -18,11 +23,13 @@ class CollectionViewController: UICollectionViewController {
     fileprivate let imageManager = PHCachingImageManager()
     fileprivate var thumbnailSize: CGSize!
     fileprivate var previousPreheatRect = CGRect.zero
+    var assetCollection: PHAssetCollection!
+    @IBOutlet weak var addButtonItem: UIBarButtonItem!
     
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+        PHPhotoLibrary.shared().register(self)
         if fetchResult == nil {
             let allPhotosOptions = PHFetchOptions()
             allPhotosOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: true)]
@@ -34,26 +41,29 @@ class CollectionViewController: UICollectionViewController {
         
         // Determine the size of the thumbnails to request from the PHCachingImageManager
         let scale = UIScreen.main.scale
-        let cellSize = (collectionViewLayout as! UICollectionViewFlowLayout).itemSize
+        let cellSize  = (collectionViewLayout as! UICollectionViewFlowLayout).itemSize
         thumbnailSize = CGSize(width: cellSize.width * scale, height: cellSize.height * scale)
+        //(collectionViewLayout as! UICollectionViewFlowLayout).itemSize = thumbnailSize
+
         
-       
     }
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
 
-    /*
+    
     // MARK: - Navigation
 
     // In a storyboard-based application, you will often want to do a little preparation before navigation
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using [segue destinationViewController].
-        // Pass the selected object to the new view controller.
+        let destination = segue.destination as! ImageViewController
+        let indexPath = collectionView?.indexPath(for: sender as! CollectionViewCell)
+        destination.asset = fetchResult.object(at: (indexPath?.item)!)
+        
     }
-    */
-
+    
+    
     // MARK: UICollectionViewDataSource
 
     override func numberOfSections(in collectionView: UICollectionView) -> Int {
@@ -84,7 +94,7 @@ class CollectionViewController: UICollectionViewController {
         })
         return cell
     }
-
+    
     // MARK: UICollectionViewDelegate
 
     /*
@@ -116,4 +126,80 @@ class CollectionViewController: UICollectionViewController {
     }
     */
 
+    fileprivate func resetCachedAssets() {
+        imageManager.stopCachingImagesForAllAssets()
+        previousPreheatRect = .zero
+    }
+    
+    
+    
+    
+    
+    @IBAction func addAsset(_ sender: AnyObject) {
+        // Create a dummy image of a random solid color and random orientation.
+        let size = (arc4random_uniform(2) == 0) ?
+            CGSize(width: 400, height: 300) :
+            CGSize(width: 300, height: 400)
+        let renderer = UIGraphicsImageRenderer(size: size)
+        let image = renderer.image { context in
+            UIColor(hue: CGFloat(arc4random_uniform(100))/100,
+                    saturation: 1, brightness: 1, alpha: 1).setFill()
+            context.fill(context.format.bounds)
+        }
+        
+        // Add it to the photo library.
+        PHPhotoLibrary.shared().performChanges({
+            let creationRequest = PHAssetChangeRequest.creationRequestForAsset(from: image)
+            if let assetCollection = self.assetCollection {
+                let addAssetRequest = PHAssetCollectionChangeRequest(for: assetCollection)
+                addAssetRequest?.addAssets([creationRequest.placeholderForCreatedAsset!] as NSArray)
+            }
+            }, completionHandler: {success, error in
+                if !success { print("error creating asset: \(error)") }
+        })
+    }
+    
 }
+
+// MARK: PHPhotoLibraryChangeObserver
+extension CollectionViewController: PHPhotoLibraryChangeObserver {
+    func photoLibraryDidChange(_ changeInstance: PHChange) {
+        
+        guard let changes = changeInstance.changeDetails(for: fetchResult)
+            else { return }
+        
+        // Change notifications may be made on a background queue. Re-dispatch to the
+        // main queue before acting on the change as we'll be updating the UI.
+        DispatchQueue.main.sync {
+            // Hang on to the new fetch result.
+            fetchResult = changes.fetchResultAfterChanges
+            if changes.hasIncrementalChanges {
+                // If we have incremental diffs, animate them in the collection view.
+                guard let collectionView = self.collectionView else { fatalError() }
+                collectionView.performBatchUpdates({
+                    // For indexes to make sense, updates must be in this order:
+                    // delete, insert, reload, move
+                    if let removed = changes.removedIndexes, removed.count > 0 {
+                        collectionView.deleteItems(at: removed.map({ IndexPath(item: $0, section: 0) }))
+                    }
+                    if let inserted = changes.insertedIndexes, inserted.count > 0 {
+                        collectionView.insertItems(at: inserted.map({ IndexPath(item: $0, section: 0) }))
+                    }
+                    if let changed = changes.changedIndexes, changed.count > 0 {
+                        collectionView.reloadItems(at: changed.map({ IndexPath(item: $0, section: 0) }))
+                    }
+                    changes.enumerateMoves { fromIndex, toIndex in
+                        collectionView.moveItem(at: IndexPath(item: fromIndex, section: 0),
+                                                to: IndexPath(item: toIndex, section: 0))
+                    }
+                })
+            } else {
+                // Reload the collection view if incremental diffs are not available.
+                collectionView!.reloadData()
+            }
+            resetCachedAssets()
+        }
+    }
+}
+
+

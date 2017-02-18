@@ -7,13 +7,14 @@
 //
 
 import UIKit
-
+import PhotosUI
+import Photos
 class CollectionViewCell: UICollectionViewCell {
     
     @IBOutlet weak var uiLabel: UILabel!
-    
     var representedAssetIdentifier: String!
     @IBOutlet weak var imageView: UIImageView!
+    
     var thumbnailImage: UIImage! {
         didSet {
             imageView.image = thumbnailImage
