@@ -9,6 +9,7 @@
 import UIKit
 import PhotosUI
 import Photos
+import CoreImage
 
 class ImageViewController: UIViewController {
     var asset: PHAsset!
@@ -16,11 +17,13 @@ class ImageViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
-        navigationController?.isToolbarHidden = false
+        
+        
     }
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         updateImage()
+        
     }
     var targetSize: CGSize {
         let scale = UIScreen.main.scale
@@ -56,6 +59,29 @@ class ImageViewController: UIViewController {
         // Pass the selected object to the new view controller.
     }
     */
+    @IBAction func editImageAction(_ sender: AnyObject) {
+        let options = PHImageRequestOptions()
+        options.version = .original
+        options.isSynchronous = true
+        
+        // Request the image data and UTI type for the image.
+        PHImageManager.default().requestImageData(for: asset, options: options) { imageData, dataUTI, _, _ in
+            guard let imageData = imageData, let dataUTI = dataUTI else { return }
+            let context = CIContext()                                           // 1
+            let filter = CIFilter(name: "CISepiaTone")!                         // 2
+            filter.setValue(0.8, forKey: kCIInputIntensityKey)
+            let image = CIImage(data: imageData)
+            let cropRect = CGRect(x: 350, y: 350, width: 150, height: 150)
+            //let croppedImage = image?.cropping(to: cropRect)
+            //self.imageView.image = UIImage(ciImage: croppedImage!)
+            
+            
+            
+        
+        }
+        
+        
+    }
     
 }
 

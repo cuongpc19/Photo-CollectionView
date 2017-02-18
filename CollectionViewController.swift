@@ -36,6 +36,7 @@ class CollectionViewController: UICollectionViewController {
             fetchResult = PHAsset.fetchAssets(with: allPhotosOptions)
         }
     }
+    
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
@@ -57,6 +58,7 @@ class CollectionViewController: UICollectionViewController {
 
     // In a storyboard-based application, you will often want to do a little preparation before navigation
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        super.prepare(for: segue, sender: sender)
         let destination = segue.destination as! ImageViewController
         let indexPath = collectionView?.indexPath(for: sender as! CollectionViewCell)
         destination.asset = fetchResult.object(at: (indexPath?.item)!)
